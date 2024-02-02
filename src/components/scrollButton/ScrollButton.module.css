@@ -1,15 +1,25 @@
 .ScrollButton {
+  background-color: #3f51b5;
+  border-radius: 4px;
+  border: 0;
+  box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.2),
+              0px 2px 2px 0px rgba(0, 0, 0, 0.14), 
+              0px 1px 5px 0px rgba(0, 0, 0, 0.12);
+  color: #fff;
+  cursor: pointer;
   display: none;
+  font-family: inherit;
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 24px;
+  padding: 8px 16px;
   position: fixed;
   bottom: 20px;
   right: 20px;
-  background-color: #3f51b5;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  padding: 10px 20px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.3s ease;
+  text-align: center;
+  text-decoration: none;
+  transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .ScrollButton:hover {

@@ -36,7 +36,7 @@ class ScrollButton extends Component {
         className={styles.ScrollButton}
         onClick={this.backToTop}
       >
-        Scroll to Top
+        scroll to top
       </button>
     );
   }
