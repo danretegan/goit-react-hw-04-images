@@ -3,3 +3,4 @@
 - React hooks
 - Axios
 - Notiflix
+- react-loader-spinner
