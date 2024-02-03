@@ -5,7 +5,7 @@ import ImageGallery from './imageGallery/ImageGallery';
 import ScrollButton from './scrollButton/ScrollButton';
 import Button from './loadMoreButton/LoadButton';
 import Modal from './modal/Modal';
-import pixabayService from './services/pixabayService';
+import fetchImages from './services/pixabayApi';
 
 class App extends Component {
   state = {
@@ -22,38 +22,32 @@ class App extends Component {
   componentDidUpdate(_prevProps, prevState) {
     if (prevState.query !== this.state.query) {
       this.setState({ images: [], page: 1, isLastPage: false }, () => {
-        this.fetchImages();
+        this.fetchImagesApp();
       });
     }
   }
 
-  fetchImages = async () => {
+  // Această metodă gestionează obținerea de imagini din pixabyAPI.js folosind funcția fetchImages. Parametrii precum query (cuvântul cheie de căutare) și page (numărul de pagină) sunt obținuți din starea locală a componentei. Callback-urile sunt utilizate pentru a actualiza starea componentei App în funcție de rezultatele obținute din API.
+  // - updatedImages: array-ul de imagini actualizate. Imaginile noi sunt adăugate la array-ul existent de imagini.
+  // - newPage: noul număr de pagină, eventual actualizat după obținerea imaginilor.
+  // - isLastPage: valoarea booleană care indică dacă s-a ajuns la ultima pagină de rezultate.
+  // - isLoading: valoarea booleană care indică dacă încărcarea este în desfășurare.
+  // - error: mesajul de eroare, în cazul în care există probleme în timpul apelului API.
+  fetchImagesApp = () => {
     const { query, page } = this.state;
 
-    this.setState({ isLoading: true });
-
-    try {
-      // Încărcare imaginilor
-      const { images, totalHits } = await pixabayService.searchImages(
-        query,
-        page
-      );
-
-      // Așteptare 1 secundă după ce imaginile au fost încărcate
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      this.setState(prevState => ({
-        images: [...prevState.images, ...images],
-        page: prevState.page + 1,
-        isLastPage: prevState.images.length + images.length >= totalHits,
-      }));
-    } catch (error) {
-      this.setState({ error: error.message });
-    } finally {
-      // Oprim Loader-ul după 1 secundă
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      this.setState({ isLoading: false });
-    }
+    fetchImages(
+      query,
+      page,
+      updatedImages =>
+        this.setState(prevState => ({
+          images: [...prevState.images, ...updatedImages],
+        })),
+      newPage => this.setState({ page: newPage }),
+      isLastPage => this.setState({ isLastPage }),
+      isLoading => this.setState({ isLoading }),
+      error => this.setState({ error })
+    );
   };
 
   handleSearchSubmit = query => {
@@ -90,7 +84,7 @@ class App extends Component {
         <ImageGallery images={images} onItemClick={this.handleImageClick} />
         {isLoading && <Loader />}
         {!isLoading && images.length > 0 && !isLastPage && (
-          <Button onClick={this.fetchImages} />
+          <Button onClick={this.fetchImagesApp} />
         )}
 
         {showModal && (
