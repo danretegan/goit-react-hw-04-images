@@ -1,45 +1,42 @@
 import React, { Component } from 'react';
-import styles from './ScrollButton.module.css';
+import PropTypes from 'prop-types';
+import SearchForm from '../searchForm/SearchForm';
+import styles from './Searchbar.module.css';
 
-class ScrollButton extends Component {
-  componentDidMount() {
-    window.addEventListener('scroll', this.scrollFunction);
-  }
-
-  componentWillUnmount() {
-    window.removeEventListener('scroll', this.scrollFunction);
-  }
-
-  scrollFunction = () => {
-    const mybutton = document.getElementById('btn-back-to-top');
-    if (
-      document.body.scrollTop > 20 ||
-      document.documentElement.scrollTop > 20
-    ) {
-      mybutton.style.display = 'block';
-    } else {
-      mybutton.style.display = 'none';
-    }
+class Searchbar extends Component {
+  state = {
+    query: '',
   };
 
-  backToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth',
-    });
+  handleChange = event => {
+    this.setState({ query: event.target.value });
+  };
+
+  handleSubmit = event => {
+    event.preventDefault();
+    if (!this.state.query.trim()) {
+      return;
+    }
+    this.props.onSubmit(this.state.query);
   };
 
   render() {
+    const { query } = this.state;
+
     return (
-      <button
-        id="btn-back-to-top"
-        className={styles.ScrollButton}
-        onClick={this.backToTop}
-      >
-        scroll to top
-      </button>
+      <header className={styles.Searchbar}>
+        <SearchForm
+          onSubmit={this.handleSubmit}
+          onChange={this.handleChange}
+          query={query}
+        />
+      </header>
     );
   }
 }
 
-export default ScrollButton;
+export default Searchbar;
+
+Searchbar.propTypes = {
+  onSubmit: PropTypes.func.isRequired,
+};
