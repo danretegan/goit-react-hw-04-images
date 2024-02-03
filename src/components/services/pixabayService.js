@@ -4,22 +4,20 @@ import notiflix from 'notiflix';
 const API_KEY = '34187261-edb3bdfe414ee3b7adebeccc5';
 const BASE_URL = 'https://pixabay.com/api/';
 
-let hasShownNotification = false; // Variabilă pentru a verifica dacă notificarea a fost afișată
-
-// Serviciul Pixabay care furnizează funcția de căutare a imaginilor în API-ul Pixabay:
+// Serviciul Pixabay care furnizează funcția de căutare a imaginilor
 const pixabayService = {
-  // Funcția asincronă pentru căutarea imaginilor în API-ul Pixabay în funcție de un cuvânt cheie, pagină și număr de rezultate pe pagină (implicit 12):
+  // Funcția asincronă pentru căutarea imaginilor
   searchImages: async (query, page = 1, perPage = 12) => {
     try {
-      // Realizăm o cerere GET către API-ul Pixabay utilizând Axios și obținem răspunsul API-ului într-o variabilă de răspuns (response):
+      // Realizăm o cerere GET către API-ul Pixabay utilizând Axios
       const response = await axios.get(
         `${BASE_URL}?q=${query}&page=${page}&key=${API_KEY}&image_type=photo&orientation=horizontal&per_page=${perPage}`
       );
 
-      // Extragem informațiile necesare din răspunsul API-ului Pixabay și le stocăm în variabile locale (hits și totalHits):
+      // Extragem informațiile necesare din răspunsul API-ului
       const { hits, totalHits } = response.data;
 
-      // Validăm formatul răspunsului pentru a evita erori de manipulare a datelor și pentru a afișa notificări corespunzătoare:
+      // Validăm formatul răspunsului pentru a evita erori de manipulare
       if (!Array.isArray(hits)) {
         notiflix.Notify.failure(
           'Invalid response format. Hits should be an array.'
@@ -30,6 +28,7 @@ const pixabayService = {
         };
       }
 
+      // Informăm utilizatorul dacă nu există imagini pentru căutarea specificată
       if (hits.length === 0) {
         notiflix.Notify.info(
           'Sorry, there are no images matching your request...'
@@ -40,7 +39,12 @@ const pixabayService = {
         };
       }
 
-      // Modificăm formatul obiectelor imagine pentru a corespunde structurii așteptate de componenta ImageGallery:
+      // Afișează notificarea doar pentru prima pagină
+      if (page === 1) {
+        notiflix.Notify.info(`Found ${totalHits} images for your search.`);
+      }
+
+      // Modificăm formatul obiectelor imagine pentru a corespunde structurii așteptate
       const modifiedHits = hits.map(
         ({ id, tags, webformatURL, largeImageURL }) => ({
           id,
@@ -50,13 +54,7 @@ const pixabayService = {
         })
       );
 
-      // Afișează notificarea doar dacă nu a fost deja afișată pentru căutarea curentă:
-      if (!hasShownNotification) {
-        notiflix.Notify.info(`Found ${totalHits} images for your search.`);
-        hasShownNotification = true; // Setează variabila pentru a indica că notificarea a fost afișată pentru căutarea curentă și nu trebuie afișată din nou pentru aceeași căutare în API Pixabay
-      }
-
-      // Returnăm un obiect ce conține imagini modificate și totalul de imagini disponibile pentru căutare în API Pixabay:
+      // Returnăm un obiect ce conține imagini modificate și totalul de imagini disponibile
       return {
         images: modifiedHits,
         totalHits,
@@ -64,9 +62,6 @@ const pixabayService = {
     } catch (error) {
       notiflix.Notify.failure(`Error: ${error.message}`);
       throw new Error(error.message);
-    } finally {
-      // Resetăm variabila pentru a permite afișarea notificării pentru următoarea căutare în API Pixabay:
-      hasShownNotification = false;
     }
   },
 };
