@@ -1,45 +1,43 @@
-import React, { Component } from 'react';
+import React, { useEffect } from 'react';
 import styles from './ScrollButton.module.css';
 
-class ScrollButton extends Component {
-  componentDidMount() {
-    window.addEventListener('scroll', this.scrollFunction);
-  }
+const ScrollButton = () => {
+  useEffect(() => {
+    const scrollFunction = () => {
+      const mybutton = document.getElementById('btn-back-to-top');
+      if (
+        document.body.scrollTop > 20 ||
+        document.documentElement.scrollTop > 20
+      ) {
+        mybutton.style.display = 'block';
+      } else {
+        mybutton.style.display = 'none';
+      }
+    };
 
-  componentWillUnmount() {
-    window.removeEventListener('scroll', this.scrollFunction);
-  }
+    window.addEventListener('scroll', scrollFunction);
 
-  scrollFunction = () => {
-    const mybutton = document.getElementById('btn-back-to-top');
-    if (
-      document.body.scrollTop > 20 ||
-      document.documentElement.scrollTop > 20
-    ) {
-      mybutton.style.display = 'block';
-    } else {
-      mybutton.style.display = 'none';
-    }
-  };
+    return () => {
+      window.removeEventListener('scroll', scrollFunction);
+    };
+  }, []);
 
-  backToTop = () => {
+  const backToTop = () => {
     window.scrollTo({
       top: 0,
       behavior: 'smooth',
     });
   };
 
-  render() {
-    return (
-      <button
-        id="btn-back-to-top"
-        className={styles.ScrollButton}
-        onClick={this.backToTop}
-      >
-        scroll to top
-      </button>
-    );
-  }
-}
+  return (
+    <button
+      id="btn-back-to-top"
+      className={styles.ScrollButton}
+      onClick={backToTop}
+    >
+      scroll to top
+    </button>
+  );
+};
 
 export default ScrollButton;

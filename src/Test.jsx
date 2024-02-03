@@ -1,46 +1,45 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
-import styles from './Modal.module.css';
+import styles from './ScrollButton.module.css';
 
-class Modal extends Component {
+class ScrollButton extends Component {
   componentDidMount() {
-    window.addEventListener('keydown', this.handleKeyDown);
+    window.addEventListener('scroll', this.scrollFunction);
   }
 
   componentWillUnmount() {
-    window.removeEventListener('keydown', this.handleKeyDown);
+    window.removeEventListener('scroll', this.scrollFunction);
   }
 
-  handleKeyDown = event => {
-    if (event.code === 'Escape') {
-      this.props.onClose();
+  scrollFunction = () => {
+    const mybutton = document.getElementById('btn-back-to-top');
+    if (
+      document.body.scrollTop > 20 ||
+      document.documentElement.scrollTop > 20
+    ) {
+      mybutton.style.display = 'block';
+    } else {
+      mybutton.style.display = 'none';
     }
   };
 
-  handleClick = event => {
-    if (event.target === event.currentTarget) {
-      this.props.onClose();
-    }
+  backToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
   };
 
   render() {
-    const { image } = this.props;
-
     return (
-      <div className={styles.Overlay} onClick={this.handleClick}>
-        <div className={styles.Modal}>
-          <img src={image.largeImageURL} alt={image.tags} />
-        </div>
-      </div>
+      <button
+        id="btn-back-to-top"
+        className={styles.ScrollButton}
+        onClick={this.backToTop}
+      >
+        scroll to top
+      </button>
     );
   }
 }
 
-export default Modal;
-
-Modal.propTypes = {
-  image: PropTypes.shape({
-    largeImageURL: PropTypes.string.isRequired,
-  }).isRequired,
-  onClose: PropTypes.func.isRequired,
-};
+export default ScrollButton;
