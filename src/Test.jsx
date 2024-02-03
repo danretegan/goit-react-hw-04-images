@@ -1,42 +1,42 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import SearchForm from '../searchForm/SearchForm';
-import styles from './Searchbar.module.css';
+import styles from './SearchForm.module.css';
 
-class Searchbar extends Component {
-  state = {
-    query: '',
-  };
-
-  handleChange = event => {
-    this.setState({ query: event.target.value });
-  };
-
-  handleSubmit = event => {
-    event.preventDefault();
-    if (!this.state.query.trim()) {
-      return;
-    }
-    this.props.onSubmit(this.state.query);
+class SearchForm extends Component {
+  handleClick = () => {
+    // La fiecare clic pe input, setează query-ul la un șir gol
+    const { onChange } = this.props;
+    onChange({ target: { value: '' } });
   };
 
   render() {
-    const { query } = this.state;
+    const { onSubmit, onChange, query } = this.props;
 
     return (
-      <header className={styles.Searchbar}>
-        <SearchForm
-          onSubmit={this.handleSubmit}
-          onChange={this.handleChange}
-          query={query}
+      <form className={styles.SearchForm} onSubmit={onSubmit}>
+        <button type="submit" className={styles.SearchFormButton}>
+          <span className={styles.SearchFormButtonLabel}>Search</span>
+        </button>
+
+        <input
+          className={styles.SearchFormInput}
+          type="text"
+          autoComplete="off"
+          autoFocus
+          placeholder="Search images and photos"
+          value={query}
+          onChange={onChange}
+          onClick={this.handleClick} // Adaugă acest eveniment pentru a goli input-ul
         />
-      </header>
+      </form>
     );
   }
 }
 
-export default Searchbar;
+export default SearchForm;
 
-Searchbar.propTypes = {
+SearchForm.propTypes = {
   onSubmit: PropTypes.func.isRequired,
+  onChange: PropTypes.func.isRequired,
+  query: PropTypes.string.isRequired,
 };
