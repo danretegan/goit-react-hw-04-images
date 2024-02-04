@@ -6,39 +6,7 @@ import ScrollButton from './scrollButton/ScrollButton';
 import Button from './loadMoreButton/LoadButton';
 import Modal from './modal/Modal';
 import pixabayService from './services/pixabayService';
-
-const updateImages = (prevImages, fetchedImages) => [
-  ...prevImages,
-  ...fetchedImages,
-];
-
-const fetchImagesApp = async (
-  query,
-  page,
-  setImages,
-  setPage,
-  setIsLoading,
-  setError,
-  setIsLastPage
-) => {
-  setIsLoading(true);
-  try {
-    const { images: fetchedImages, totalHits } =
-      await pixabayService.searchImages(query, page);
-
-    if (totalHits === 0) {
-      setIsLastPage(true);
-      return;
-    }
-
-    setImages(prevImages => updateImages(prevImages, fetchedImages));
-    setPage(page + 1);
-  } catch (error) {
-    setError(error.message);
-  } finally {
-    setIsLoading(false);
-  }
-};
+import { IMAGES_PER_PAGE } from './constants';
 
 const App = () => {
   const [images, setImages] = useState([]);
@@ -46,52 +14,69 @@ const App = () => {
   const [error, setError] = useState(null);
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
+  const [totalHits, setTotalHits] = useState(1);
   const [showModal, setShowModal] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
-  const [isLastPage, setIsLastPage] = useState(false);
+  const [showButton, setShowButton] = useState(false);
+
+  useEffect(() => {
+    if (!query) return;
+    async function getImages() {
+      try {
+        setShowButton(true);
+        setIsLoading(true);
+        const { hits, totalHits: responseTotalHits } =
+          await pixabayService.searchImages(query, page);
+
+        if (!hits.length) {
+          return setQuery('');
+        }
+
+        const modifiedHits = hits.map(
+          ({ id, tags, webformatURL, largeImageURL }) => ({
+            id,
+            tags,
+            webformatURL,
+            largeImageURL,
+          })
+        );
+
+        setImages(prevImages => [...prevImages, ...modifiedHits]);
+        setTotalHits(responseTotalHits);
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    getImages();
+  }, [page, query]);
 
   const handleSearchSubmit = newQuery => {
     if (query === newQuery) {
       return;
     }
-
     setQuery(newQuery);
-    setPage(1);
     setImages([]);
+    setPage(1);
+    setTotalHits(1);
+    setIsLoading(false);
     setError(null);
-    setIsLastPage(false);
   };
 
   const handleImageClick = image => {
     setSelectedImage(image);
     setShowModal(true);
-    document.body.style.overflow = 'hidden';
   };
 
   const handleModalClose = () => {
     setSelectedImage(null);
     setShowModal(false);
-    document.body.style.overflow = 'auto';
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (query && (page === 1 || isLastPage)) {
-        setImages([]);
-        await fetchImagesApp(
-          query,
-          page,
-          setImages,
-          setPage,
-          setIsLoading,
-          setError,
-          setIsLastPage
-        );
-      }
-    };
-
-    fetchData();
-  }, [query, page, isLastPage, setImages, setPage, setIsLoading, setError]);
+  const loadMoreBtn = () => {
+    setPage(prevPage => prevPage + 1);
+  };
 
   return (
     <>
@@ -99,24 +84,10 @@ const App = () => {
       {error && <p>Error: {error}</p>}
       <ImageGallery images={images} onItemClick={handleImageClick} />
       {isLoading && <Loader />}
-      {!isLoading && images.length > 0 && !isLastPage && (
-        <Button
-          onClick={() =>
-            fetchImagesApp(
-              query,
-              page,
-              setImages,
-              setPage,
-              setIsLoading,
-              setError,
-              setIsLastPage
-            )
-          }
-        />
+      {!isLoading && totalHits / IMAGES_PER_PAGE > page && showButton && (
+        <Button onClick={loadMoreBtn} />
       )}
-
       {showModal && <Modal image={selectedImage} onClose={handleModalClose} />}
-
       <ScrollButton />
     </>
   );
