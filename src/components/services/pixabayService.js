@@ -5,7 +5,7 @@ const BASE_URL = 'https://pixabay.com/api/';
 
 const searchImages = async (query, page) => {
   try {
-    const apiUrl = `${BASE_URL}?key=${API_KEY}&q=${query}&page=${page}&per_page=10`;
+    const apiUrl = `${BASE_URL}?key=${API_KEY}&q=${query}&page=${page}&per_page=12`;
     const response = await axios.get(apiUrl);
 
     if (response.data.hits.length === 0) {
