@@ -1,4 +1,3 @@
-// App.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import Searchbar from './searchbar/Searchbar';
 import Loader from './loader/Loader';
@@ -7,6 +6,11 @@ import ScrollButton from './scrollButton/ScrollButton';
 import Button from './loadMoreButton/LoadButton';
 import Modal from './modal/Modal';
 import pixabayService from './services/pixabayService';
+
+const updateImages = (prevImages, fetchedImages) => [
+  ...prevImages,
+  ...fetchedImages,
+];
 
 const App = () => {
   const [images, setImages] = useState([]);
@@ -29,7 +33,7 @@ const App = () => {
         return;
       }
 
-      setImages(prevImages => [...prevImages, ...fetchedImages]);
+      setImages(prevImages => updateImages(prevImages, fetchedImages));
       setPage(prevPage => prevPage + 1);
     } catch (error) {
       setError(error.message);
