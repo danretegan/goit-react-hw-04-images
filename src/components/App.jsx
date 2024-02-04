@@ -6,7 +6,6 @@ import ScrollButton from './scrollButton/ScrollButton';
 import Button from './loadMoreButton/LoadButton';
 import Modal from './modal/Modal';
 import pixabayService from './services/pixabayService';
-import Notiflix from 'notiflix';
 
 const updateImages = (prevImages, fetchedImages) => [
   ...prevImages,
@@ -23,27 +22,19 @@ const fetchImagesApp = async (
   setIsLastPage
 ) => {
   setIsLoading(true);
-  console.log('Fetching images...');
   try {
     const { images: fetchedImages, totalHits } =
       await pixabayService.searchImages(query, page);
 
-    console.log('Total hits:', totalHits);
-
     if (totalHits === 0) {
       setIsLastPage(true);
-      Notiflix.Notify.info('No images found. Please try another search term.');
       return;
     }
 
     setImages(prevImages => updateImages(prevImages, fetchedImages));
     setPage(page + 1);
-    const remainingImages = totalHits - page * 12;
-    const successMessage = `Found ${totalHits} images for "${query}". <br/>${remainingImages} images remained to be seen.`;
-    Notiflix.Notify.success(successMessage);
   } catch (error) {
     setError(error.message);
-    Notiflix.Notify.failure(`Error: ${error.message}`);
   } finally {
     setIsLoading(false);
   }
@@ -84,9 +75,7 @@ const App = () => {
   };
 
   useEffect(() => {
-    console.log('Effect is running...');
     const fetchData = async () => {
-      console.log('Fetching data...');
       if (query && (page === 1 || isLastPage)) {
         setImages([]);
         await fetchImagesApp(
