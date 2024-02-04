@@ -6,6 +6,7 @@ import ImageGallery from './imageGallery/ImageGallery';
 import ScrollButton from './scrollButton/ScrollButton';
 import Button from './loadMoreButton/LoadButton';
 import Modal from './modal/Modal';
+import pixabayService from './services/pixabayService';
 
 const App = () => {
   const [images, setImages] = useState([]);
@@ -20,18 +21,15 @@ const App = () => {
   const fetchImagesApp = useCallback(async () => {
     setIsLoading(true);
     try {
-      const apiKey = '34187261-edb3bdfe414ee3b7adebeccc5';
-      const apiUrl = `https://pixabay.com/api/?key=${apiKey}&q=${query}&page=${page}&per_page=10`;
+      const { images: fetchedImages, totalHits } =
+        await pixabayService.searchImages(query, page);
 
-      const response = await fetch(apiUrl);
-      const data = await response.json();
-
-      if (data.hits.length === 0) {
+      if (totalHits === 0) {
         setIsLastPage(true);
         return;
       }
 
-      setImages(prevImages => [...prevImages, ...data.hits]);
+      setImages(prevImages => [...prevImages, ...fetchedImages]);
       setPage(prevPage => prevPage + 1);
     } catch (error) {
       setError(error.message);
