@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Searchbar from './searchbar/Searchbar';
 import Loader from './loader/Loader';
 import ImageGallery from './imageGallery/ImageGallery';
@@ -12,34 +12,6 @@ const updateImages = (prevImages, fetchedImages) => [
   ...fetchedImages,
 ];
 
-const fetchImagesApp = async (
-  query,
-  page,
-  setImages,
-  setPage,
-  setIsLoading,
-  setError,
-  setIsLastPage
-) => {
-  setIsLoading(true);
-  try {
-    const { images: fetchedImages, totalHits } =
-      await pixabayService.searchImages(query, page);
-
-    if (totalHits === 0) {
-      setIsLastPage(true);
-      return;
-    }
-
-    setImages(prevImages => updateImages(prevImages, fetchedImages));
-    setPage(page + 1);
-  } catch (error) {
-    setError(error.message);
-  } finally {
-    setIsLoading(false);
-  }
-};
-
 const App = () => {
   const [images, setImages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -49,6 +21,26 @@ const App = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [isLastPage, setIsLastPage] = useState(false);
+
+  const fetchImagesApp = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const { images: fetchedImages, totalHits } =
+        await pixabayService.searchImages(query, page);
+
+      if (totalHits === 0) {
+        setIsLastPage(true);
+        return;
+      }
+
+      setImages(prevImages => updateImages(prevImages, fetchedImages));
+      setPage(prevPage => prevPage + 1);
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [query, page]);
 
   const handleSearchSubmit = newQuery => {
     if (query === newQuery) {
@@ -62,36 +54,24 @@ const App = () => {
     setIsLastPage(false);
   };
 
-  const handleImageClick = image => {
+  const handleImageClick = useCallback(image => {
     setSelectedImage(image);
     setShowModal(true);
     document.body.style.overflow = 'hidden';
-  };
+  }, []);
 
-  const handleModalClose = () => {
+  const handleModalClose = useCallback(() => {
     setSelectedImage(null);
     setShowModal(false);
     document.body.style.overflow = 'auto';
-  };
+  }, []);
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (query && (page === 1 || isLastPage)) {
-        setImages([]);
-        await fetchImagesApp(
-          query,
-          page,
-          setImages,
-          setPage,
-          setIsLoading,
-          setError,
-          setIsLastPage
-        );
-      }
-    };
-
-    fetchData();
-  }, [query, page, isLastPage, setImages, setPage, setIsLoading, setError]);
+    if (query && (page === 1 || isLastPage)) {
+      setImages([]);
+      fetchImagesApp();
+    }
+  }, [query, page, isLastPage, fetchImagesApp]);
 
   return (
     <>
@@ -100,19 +80,7 @@ const App = () => {
       <ImageGallery images={images} onItemClick={handleImageClick} />
       {isLoading && <Loader />}
       {!isLoading && images.length > 0 && !isLastPage && (
-        <Button
-          onClick={() =>
-            fetchImagesApp(
-              query,
-              page,
-              setImages,
-              setPage,
-              setIsLoading,
-              setError,
-              setIsLastPage
-            )
-          }
-        />
+        <Button onClick={() => fetchImagesApp()} />
       )}
 
       {showModal && <Modal image={selectedImage} onClose={handleModalClose} />}
